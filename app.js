@@ -100,13 +100,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 const rateLimiter = require("express-rate-limit");
 const whatsappLimiter = rateLimiter({
       max: 3,
-      windowMS: 100000, //10 seconds
+      windowMS: 12000000, //10 seconds
       message: "Too many attempts. Try again later."
   })
 
 
 
 
+
+
+  
+// app.use((req,res,next)=>{
+
+
+  
+
+// })
 
 
 app.use('/', indexRouter);
@@ -128,7 +137,14 @@ app.use('/partnerShip', partnerShipRouter);
 app.use('/complaintSuggestion', complaintSuggestionRouter);
 app.use('/user-coupon', userCouponRouter);
 app.use('/image', ImageRouter);
-app.use('/whatsapp',whatsappLimiter, whatsappRouter);
+app.use('/whatsapp'
+// ,whatsappLimiter, 
+,whatsappRouter);
+
+
+
+
+
 
 
 

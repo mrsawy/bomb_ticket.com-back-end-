@@ -1,7 +1,7 @@
 var express = require("express");
 var router = express.Router();
 var request = require("request");
-
+var { TicketImg } = require(`./../database/database`);
 // Test Credentials
 // var token = 'rLtt6JWvbUHDDhsZnfpAhpYk4dxYDQkbcPTyGaKp2TYqQgG7FGZ5Th_WD53Oq8Ebz6A53njUoo1w3pjU1D4vs_ZMqFiz_j0urb_BH9Oq9VZoKFoJEDAbRZepGcQanImyYrry7Kt6MnMdgfG5jn4HngWoRdKduNNyP4kzcp3mRv7x00ahkm9LAK7ZRieg7k1PDAnBIOG3EyVSJ5kK4WLMvYr7sCwHbHcu4A5WwelxYK0GMJy37bNAarSJDFQsJ2ZvJjvMDmfWwDVFEVe_5tOomfVNt6bOg9mexbGjMrnHBnKnZR1vQbBtQieDlQepzTZMuQrSuKn-t5XZM7V6fCW7oP-uXGX-sMOajeX65JOf6XVpk29DP6ro8WTAflCDANC193yof8-f5_EYY-3hXhJj7RBXmizDpneEQDSaSz5sFk0sV5qPcARJ9zGG73vuGFyenjPPmtDtXtpx35A-BVcOSBYVIWe9kndG3nclfefjKEuZ3m4jL9Gg1h2JBvmXSMYiZtp9MR5I6pvbvylU_PP5xJFSjVTIz7IQSjcVGO41npnwIxRXNRxFOdIUHn0tjQ-7LwvEcTXyPsHXcMD8WtgBh-wxR8aKX7WPSsT1O8d8reb2aR7K3rkV3K82K_0OgawImEpwSvp9MNKynEAJQS6ZHe_J_l77652xwPNxMRTMASk1ZsJL';
 // var baseURL = 'https://apitest.myfatoorah.com';
@@ -63,78 +63,103 @@ function isValidEmail(email) {
 // ///////////////////////  end of  function for validating the email
 
 ///////// the payment function////////////////////////
-router.post("/pay", function (req, res) {
-  const my_InvoiceItems = [];
-  for (let index = 0; index < req.body.Quantity; index++) {
-    my_InvoiceItems.push({
-      ItemName: req.body.eventName,
-      Quantity: 1,
-      UnitPrice: req.body.price.toFixed(1) / req.body.Quantity,
+router.post("/pay", async function (req, res) {
+  const singleTicketID = req.body.ticketsId[0];
+
+
+
+// console.log(singleTicketID);
+
+  const foundedTicket = await TicketImg.findOne({
+    where: { id: singleTicketID },
+  });
+
+
+
+console.log(foundedTicket);
+
+
+  if (
+    !foundedTicket &&
+    foundedTicket.price.toFixed(1) !== req.body.price.toFixed(1)
+  ) {
+    return res
+      .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({
+        error: "error in sending the otp",
+        err: err,
+        errorMassage: err.message,
+      });
+  } else {
+    const my_InvoiceItems = [];
+    for (let index = 0; index < req.body.Quantity; index++) {
+      my_InvoiceItems.push({
+        ItemName: req.body.eventName,
+        Quantity: 1,
+        UnitPrice: req.body.price.toFixed(1) / req.body.Quantity,
+      });
+    }
+    var options = {
+      method: "POST",
+      url: baseURL + "/v2/SendPayment",
+      headers: {
+        Accept: "application/json",
+        Authorization: "bearer " + token,
+        "Content-Type": "application/json",
+      },
+      body: {
+        // PaymentMethodId: req.body.PaymentMethodId,
+        NotificationOption: "LNK",
+        // SessionId: req.body.SessionId,
+        CustomerName: req.body.CustomerName,
+        DisplayCurrencyIso: "SAR",
+
+        MobileCountryCode: req.body.MobileCountryCode,
+        CustomerMobile: req.body.CustomerMobile,
+        CustomerEmail: isValidEmail(req.body.CustomerEmail)
+          ? req.body.CustomerEmail
+          : `undefined@undefined.undefined`,
+        InvoiceValue: req.body.price.toFixed(1),
+
+        CallBackUrl: "https://bombticket.com/payment-response",
+        ErrorUrl: "https://bombticket.com/payment-response",
+        Language: "ar",
+        CustomerReference: "ref 1",
+        CustomerCivilId: 12345678,
+        UserDefinedField: `${req.body.ticketsId}/${req.body.phoneNumber}/${req.body.eventName}`,
+        ExpireDate: "",
+        CustomerAddress: {
+          Block: "",
+          Street: "",
+          HouseBuildingNo: "",
+          Address: req.body.address,
+          AddressInstructions: "",
+        },
+        InvoiceItems: my_InvoiceItems,
+      },
+      json: true,
+    };
+
+    // console.log(options.body)
+    request(options, function (error, response, body) {
+      // console.log(body)
+      if (error) {
+        return res.json({
+          error: error,
+        });
+      } else if (!body.IsSuccess) {
+        console.log(body);
+
+        return res.json({
+          error: `Error happened , please enter you data correctly and try again`,
+        });
+      } else {
+        console.log(body);
+        // var paymentURL = body['Data']['PaymentURL'];
+        return res.json(body);
+      }
     });
   }
-  var options = {
-    method: "POST",
-    url: baseURL + "/v2/SendPayment",
-    headers: {
-      Accept: "application/json",
-      Authorization: "bearer " + token,
-      "Content-Type": "application/json",
-    },
-    body: {
-
-      
-      
-      // PaymentMethodId: req.body.PaymentMethodId,
-      NotificationOption: "LNK",
-      // SessionId: req.body.SessionId,
-      CustomerName: req.body.CustomerName,
-      DisplayCurrencyIso: "SAR",
-
-      MobileCountryCode: req.body.MobileCountryCode,
-      CustomerMobile: req.body.CustomerMobile,
-      CustomerEmail: isValidEmail(req.body.CustomerEmail)
-        ? req.body.CustomerEmail
-        : `undefined@undefined.undefined`,
-      InvoiceValue: req.body.price.toFixed(1),
-
-      CallBackUrl: "https://bombticket.com/payment-response",
-      ErrorUrl: "https://bombticket.com/payment-response",
-      Language: "ar",
-      CustomerReference: "ref 1",
-      CustomerCivilId: 12345678,
-      UserDefinedField: `${req.body.ticketsId}/${req.body.phoneNumber}/${req.body.eventName}`,
-      ExpireDate: "",
-      CustomerAddress: {
-        Block: "",
-        Street: "",
-        HouseBuildingNo: "",
-        Address: req.body.address,
-        AddressInstructions: "",
-      },
-      InvoiceItems: my_InvoiceItems,
-    },
-    json: true,
-  };
-
-  // console.log(options.body)
-  request(options, function (error, response, body) {
-    // console.log(body)
-    if (error) {
-      return res.json({
-        error: error,
-      });
-    } else if (!body.IsSuccess) {
-      console.log(body);
-
-      return res.json({
-        error: `Error happened , please enter you data correctly and try again`,
-      });
-    } else {
-      console.log(body);
-      // var paymentURL = body['Data']['PaymentURL'];
-      return res.json(body);
-    }
-  });
 });
 
 //////////////// end of payment function //////////////////////
