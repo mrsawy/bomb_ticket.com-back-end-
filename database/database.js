@@ -136,16 +136,16 @@ Event.hasMany(UserNameDetail);
 
     // },6000)
 
-sequelize
-  .sync({
-    alter: true,
-  })
-  .then(() => {
-    // console.log(`Database & tables created!!!!`);
-    // console.log(`UserNameDetail========>`,UserNameDetail)
-    console.log(`Database & tables created!`);
+// sequelize
+//   .sync({
+//     alter: true,
+//   })
+//   .then(() => {
+//     // console.log(`Database & tables created!!!!`);
+//     // console.log(`UserNameDetail========>`,UserNameDetail)
+//     console.log(`Database & tables created!`);
 
-  });
+//   });
 
 module.exports = {
   UserNameDetail,

@@ -39,11 +39,16 @@ router.post("/get-payment-options", function (req, res) {
 
   request(options, function (error, response, body) {
     if (error) {
+      console.log(error);
       res.json({
         error: error,
       });
     } else {
-      console.log(body);
+      console.log(response);
+      console.log(`init payment body`, body);
+      var bodyData = body["Data"];
+      console.log(`============================`);
+      console.log(bodyData);
 
       // console.log(response.body?response.body:`nobody in the response`);
       // console.log(response.body?response.body:`nobody in the response`);
@@ -66,18 +71,13 @@ function isValidEmail(email) {
 router.post("/pay", async function (req, res) {
   const singleTicketID = req.body.ticketsId[0];
 
-
-
-// console.log(singleTicketID);
+  // console.log(singleTicketID);
 
   const foundedTicket = await TicketImg.findOne({
     where: { id: singleTicketID },
   });
 
-
-
-console.log(foundedTicket);
-
+  console.log(foundedTicket);
 
   if (
     !foundedTicket &&
@@ -161,6 +161,139 @@ console.log(foundedTicket);
     });
   }
 });
+
+//////////////////////// execute payment function  //////////////////////
+
+router.post(
+  `/executePayment`,
+  async (req, res) => {
+    const singleTicketID = req.body.ticketsId[0];
+
+    const foundedTicket = await TicketImg.findOne({
+      where: { id: singleTicketID },
+    });
+
+    if (
+      !foundedTicket &&
+      foundedTicket.price.toFixed(1) !== req.body.price.toFixed(1)
+    ) {
+      return res
+        .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
+        .json({
+          error: "error in sending the otp",
+          err: err,
+          errorMassage: err.message,
+        });
+    }
+
+    const my_InvoiceItems = [];
+    for (let index = 0; index < req.body.Quantity; index++) {
+      my_InvoiceItems.push({
+        ItemName: req.body.eventName,
+        Quantity: 1,
+        UnitPrice: req.body.price.toFixed(1) / req.body.Quantity,
+      });
+    }
+
+    var options = {
+      method: "POST",
+      url: baseURL + "/v2/SendPayment",
+      headers: {
+        Accept: "application/json",
+        Authorization: "bearer " + token,
+        "Content-Type": "application/json",
+      },
+      body: {
+        // PaymentMethodId: req.body.PaymentMethodId,
+        NotificationOption: "LNK",
+        SessionId: req.body.SessionId,
+        CustomerName: req.body.CustomerName,
+        DisplayCurrencyIso: "SAR",
+
+        MobileCountryCode: req.body.MobileCountryCode,
+        CustomerMobile: req.body.CustomerMobile,
+        CustomerEmail: isValidEmail(req.body.CustomerEmail)
+          ? req.body.CustomerEmail
+          : `undefined@undefined.undefined`,
+        InvoiceValue: req.body.price.toFixed(1),
+
+        CallBackUrl: "https://bombticket.com/payment-response",
+        ErrorUrl: "https://bombticket.com/payment-response",
+        Language: "ar",
+        CustomerReference: "ref 1",
+        CustomerCivilId: 12345678,
+        UserDefinedField: `${req.body.ticketsId}/${req.body.phoneNumber}/${req.body.eventName}`,
+        ExpireDate: "",
+        CustomerAddress: {
+          Block: "",
+          Street: "",
+          HouseBuildingNo: "",
+          Address: req.body.address,
+          AddressInstructions: "",
+        },
+        InvoiceItems: my_InvoiceItems,
+      },
+      json: true,
+    };
+
+    // var options = {
+    //   method: "POST",
+    //   url: baseURL + "/v2/ExecutePayment",
+    //   headers: {
+    //     Accept: "application/json",
+    //     Authorization: "Bearer " + token,
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: {
+    //     // PaymentMethodId: "2",
+    //     CustomerName: "Ahmed",
+    //     DisplayCurrencyIso: "KWD",
+    //     MobileCountryCode: "+965",
+    //     CustomerMobile: "12345678",
+    //     CustomerEmail: "xx@yy.com",
+    //     InvoiceValue: 100,
+    //     CallBackUrl: "https://google.com",
+    //     ErrorUrl: "https://google.com",
+    //     Language: "en",
+    //     CustomerReference: "ref 1",
+    //     CustomerCivilId: 12345678,
+    //     UserDefinedField: "Custom field",
+    //     ExpireDate: "",
+    //     CustomerAddress: {
+    //       Block: "",
+    //       Street: "",
+    //       HouseBuildingNo: "",
+    //       Address: "",
+    //       AddressInstructions: "",
+    //     },
+    //     InvoiceItems: [{ ItemName: "Product 01", Quantity: 1, UnitPrice: 100 }],
+    //   },
+    //   json: true,
+    // };
+    ////////
+
+    request(options, function (error, response, body) {
+      if (error) {
+        return res.json({
+          error: error,
+        });
+      } else if (!body.IsSuccess) {
+        console.log(body);
+
+        return res.json({
+          response,
+          error: `Error happened , please enter you data correctly and try again`,
+        });
+      } else {  
+        console.log(body);
+        // var paymentURL = body['Data']['PaymentURL'];
+        return res.json(body);
+      }
+    });
+  }
+
+  ////////
+);
 
 //////////////// end of payment function //////////////////////
 
