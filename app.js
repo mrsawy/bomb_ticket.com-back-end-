@@ -118,7 +118,7 @@ const whatsappLimiter = rateLimiter({
 // })
 
 
-app.use('/', indexRowuter);
+app.use('/', indexRouter);
 app.use('/admin', AdminRouter);
 app.use('/user', UserRouter);
 app.use('/transaction', transactionRouter);

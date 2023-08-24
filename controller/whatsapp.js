@@ -47,31 +47,31 @@ module.exports = {
       const foundTickets = await TicketImg.findAll({
         where: { id: ticketsId },
       });
-//////////////////////////////////////////////////
+      //////////////////////////////////////////////////
 
-const sellTicket = await Ticket.findOne({
-  where: { id: foundTickets[0].sellTicketId },
-});
-const buyer = await User.findOne({
-  where: { phoneNumber: phoneNumber },
-});
-const seller = await User.findOne({
-  where: { id: sellTicket.sellerId },
-});
-console.log(seller);
+      const sellTicket = await Ticket.findOne({
+        where: { id: foundTickets[0].sellTicketId },
+      });
+      const buyer = await User.findOne({
+        where: { phoneNumber: phoneNumber },
+      });
+      const seller = await User.findOne({
+        where: { id: sellTicket.sellerId },
+      });
+      console.log(seller);
 
+      const orderFounded =
+        (await Order.findOne({
+          where: {
+            sellerId: seller.id,
+            userId: buyer.id,
+          },
+        })) || undefined;
 
-const orderFounded = await Order.findOne({where:{
-  sellerId:seller.id,
-  userId:buyer.id
-}}) || undefined ; 
+      console.log(orderFounded);
 
-
-
-console.log(orderFounded);
-
-//////////////////////////////////////////////////
-if (foundTickets && orderFounded) {
+      //////////////////////////////////////////////////
+      if (foundTickets && orderFounded) {
         const numberOfTickets = foundTickets.length;
         const ticketsPDF = foundTickets.map((t) => t.image);
 
@@ -85,7 +85,6 @@ if (foundTickets && orderFounded) {
           });
 
           /////////  ~ Sending message to the buyer ~   //////////
-
 
           if (buyer) {
             const buyerFirstName = buyer.firstName;
@@ -112,7 +111,6 @@ if (foundTickets && orderFounded) {
 
           // /////////  ~ Sending message to the seller ~   //////////
 
-  
           const sellerPhoneNumber = seller.phoneNumber.toString();
           const sellerFirstName = seller.firstName.toString();
 

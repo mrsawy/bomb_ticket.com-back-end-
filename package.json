@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "nodemon ./bin/www.js"
   },
   "dependencies": {
     "axios": "^0.27.2",
@@ -34,6 +34,6 @@
     "sequelize": "^4.43.0",
     "socket.io": "^2.3.0",
     "twilio": "^4.10.0",
-    "whatsapp-web.js": "^1.19.5"
+    "whatsapp-web.js": "^1.21.1-alpha.1"
   }
 }

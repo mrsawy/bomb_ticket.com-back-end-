@@ -25,6 +25,8 @@ const userNameDetailModal = require("../models/UserNameDetail.js");
 //  Dfg456h7j8!
 // const sequelize = new Sequelize("bomb_ticket", "root", "", {
 //bombticket@phpmyadmin.nls
+// const sequelize = new Sequelize("bomb_ticket", "root", "bombticket@phpmyadmin.nls", {
+
 const sequelize = new Sequelize("bomb_ticket_backup", "root", "Dfg456h7j8!", {
   host: "localhost",
   dialect: "mysql",
