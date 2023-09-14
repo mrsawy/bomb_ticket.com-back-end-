@@ -33,6 +33,8 @@ whats_app_Bot/
 bin/
 
 ../.wwebjs_auth
+.wwebjs_auth/
+.wwebjs_cache/
 Images/
 ../Images
 

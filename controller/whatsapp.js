@@ -60,13 +60,12 @@ module.exports = {
       });
       console.log(seller);
 
-      const orderFounded =
-        (await Order.findOne({
-          where: {
-            sellerId: seller.id,
-            userId: buyer.id,
-          },
-        })) || undefined;
+      const orderFounded = await Order.findOne({
+        where: {
+          sellerId: seller.id,
+          userId: buyer.id,
+        },
+      });
 
       console.log(orderFounded);
 
