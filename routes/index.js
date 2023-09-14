@@ -68,10 +68,107 @@ function isValidEmail(email) {
 // ///////////////////////  end of  function for validating the email
 
 ///////// the payment function////////////////////////
+// router.post("/pay", async function (req, res) {
+
+//   console.log(`trying to pay`);
+//   const singleTicketID = req.body.ticketsId[0];
+
+//   // console.log(singleTicketID);
+
+//   const foundedTicket = await TicketImg.findOne({
+//     where: { id: singleTicketID },
+//   });
+
+//   console.log(`foundedTicket`,foundedTicket, `
+
+//   singleTicketID=>`,singleTicketID);
+
+//   if (
+//     !foundedTicket &&
+//     foundedTicket.price.toFixed(1) !== req.body.price.toFixed(1)
+//   ) {
+//     return res
+//       .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
+//       .json({
+//         error: "error in sending the otp",
+//         err: err,
+//         errorMassage: err.message,
+//       });
+//   } else {
+//     const my_InvoiceItems = [];
+//     for (let index = 0; index < req.body.Quantity; index++) {
+//       my_InvoiceItems.push({
+//         ItemName: req.body.eventName,
+//         Quantity: 1,
+//         UnitPrice: req.body.price.toFixed(1) / req.body.Quantity,
+//       });
+//     }
+//     var options = {
+//       method: "POST",
+//       url: baseURL + "/v2/SendPayment",
+//       headers: {
+//         Accept: "application/json",
+//         Authorization: "bearer " + token,
+//         "Content-Type": "application/json",
+//       },
+//       body: {
+//         // PaymentMethodId: req.body.PaymentMethodId,
+//         NotificationOption: "LNK",
+//         // SessionId: req.body.SessionId,
+//         CustomerName: req.body.CustomerName,
+//         DisplayCurrencyIso: "SAR",
+
+//         MobileCountryCode: req.body.MobileCountryCode,
+//         CustomerMobile: req.body.CustomerMobile,
+//         CustomerEmail: isValidEmail(req.body.CustomerEmail)
+//           ? req.body.CustomerEmail
+//           : `undefined@undefined.undefined`,
+//         InvoiceValue: req.body.price.toFixed(1),
+
+//         CallBackUrl: "https://bombticket.com/payment-response",
+//         ErrorUrl: "https://bombticket.com/payment-response",
+//         Language: "ar",
+//         CustomerReference: "ref 1",
+//         CustomerCivilId: 12345678,
+//         UserDefinedField: `${req.body.ticketsId}/${req.body.phoneNumber}/${req.body.eventName}`,
+//         ExpireDate: "",
+//         CustomerAddress: {
+//           Block: "",
+//           Street: "",
+//           HouseBuildingNo: "",
+//           Address: req.body.address,
+//           AddressInstructions: "",
+//         },
+//         InvoiceItems: my_InvoiceItems,
+//       },
+//       json: true,
+//     };
+
+//     // console.log(options.body)
+//     request(options, function (error, response, body) {
+//       // console.log(body)
+//       if (error) {
+//         return res.json({
+//           error: error,
+//         });
+//       } else if (!body.IsSuccess) {
+//         console.log(body);
+
+//         return res.json({
+//           error: `Error happened , please enter you data correctly and try again`,
+//         });
+//       } else {
+//         console.log(body);
+//         // var paymentURL = body['Data']['PaymentURL'];
+//         return res.json(body);
+//       }
+//     });
+//   }
+// });
 router.post("/pay", async function (req, res) {
   const singleTicketID = req.body.ticketsId[0];
 
-  // console.log(singleTicketID);
+  console.log(`req.body=>`, req.body);
 
   const foundedTicket = await TicketImg.findOne({
     where: { id: singleTicketID },
@@ -79,14 +176,23 @@ router.post("/pay", async function (req, res) {
 
   console.log(foundedTicket);
 
+  console.log(
+    `foundedTicket`,
+    foundedTicket,
+    `
+  
+  singleTicketID=>`,
+    singleTicketID
+  );
+
   if (
     !foundedTicket &&
+    foundedTicket?.price &&
     foundedTicket.price.toFixed(1) !== req.body.price.toFixed(1)
   ) {
     return res
       .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
       .json({
-        error: "error in sending the otp",
         err: err,
         errorMassage: err.message,
       });
@@ -162,21 +268,33 @@ router.post("/pay", async function (req, res) {
   }
 });
 
+//////////////// end of payment function //////////////////////
+
 //////////////////////// execute payment function  //////////////////////
 
 router.post(
   `/executePayment`,
   async (req, res) => {
+    console.log(`
+    
+    1`);
     const singleTicketID = req.body.ticketsId[0];
 
     const foundedTicket = await TicketImg.findOne({
       where: { id: singleTicketID },
     });
+    console.log(`
+    
+    2`);
 
     if (
       !foundedTicket &&
       foundedTicket.price.toFixed(1) !== req.body.price.toFixed(1)
     ) {
+      console.log(`
+    
+    3`);
+
       return res
         .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
         .json({
@@ -197,7 +315,7 @@ router.post(
 
     var options = {
       method: "POST",
-      url: baseURL + "/v2/SendPayment",
+      url: baseURL + "/v2/ExecutePayment",
       headers: {
         Accept: "application/json",
         Authorization: "bearer " + token,
@@ -274,17 +392,30 @@ router.post(
 
     request(options, function (error, response, body) {
       if (error) {
-        return res.json({
+        console.log(`
+    
+                      4`);
+        console.log(error);
+
+        return res.status(404).json({
           error: error,
         });
       } else if (!body.IsSuccess) {
         console.log(body);
 
-        return res.json({
+        return res.status(404).json({
           response,
-          error: `Error happened , please enter you data correctly and try again`,
+          error: `Error happened , please enter your data correctly and try again`,
         });
-      } else {  
+      } else {
+        // kolo tmam
+        console.log(`
+    
+                    5
+    
+    
+                        all is wel ==>`);
+
         console.log(body);
         // var paymentURL = body['Data']['PaymentURL'];
         return res.json(body);

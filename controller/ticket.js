@@ -161,7 +161,7 @@ module.exports = {
       const userJwt = req.headers.authorization.split(` `)[1];
       const userReceivedInfo = jwt.decode(userJwt, `secretKey-secretKey-secretKey`)
 
-
+console.log(`userReceivedInfo,`,userReceivedInfo,`userJwt:==`,userJwt);
       ///////////////////////////
 
       const updateTicket = await Ticket.update(
@@ -200,6 +200,7 @@ module.exports = {
         });
       }
     } catch (error) {
+      console.log(error)
       return res
         .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
         .json({

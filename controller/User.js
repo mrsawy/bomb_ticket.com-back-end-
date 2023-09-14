@@ -81,6 +81,12 @@ module.exports = {
 
       const phoneNumber = req.body.phoneNumber.replace(/[^\d]/g, "");
 
+      console.log(phoneNumber)
+
+      if (phoneNumber.startsWith("966") && phoneNumber.length > 12) {
+        return res.status(500).json({
+          error: "the number must be 9 digits only",
+        });    }
       
 
       const user = await User.findOne({
@@ -139,7 +145,19 @@ module.exports = {
   // async
   sendOtp: async (req, res, next) => {
     let { phoneNumber } = req.body;
+
     try {
+
+
+      console.log(phoneNumber);
+      if (phoneNumber.startsWith("966") && phoneNumber.length > 12) {
+        return res.status(500).json({
+          error: "the number must be 9 digits only",
+        });
+      }
+
+
+
       const response = await sendOTP(phoneNumber, req, res);
       return response;
     } catch (err) {

@@ -316,15 +316,12 @@ module.exports = {
                     }
                 }
             )
-
-
             return res.status(http_status_codes.StatusCodes.OK).json({
                 status_code: http_status_codes.StatusCodes.OK,
                 status: "success",
                 message: "Admin Password updated successfully!",
                 admin: null,
             });
-
         } catch (error) {
             return res
                 .status(http_status_codes.StatusCodes.INTERNAL_SERVER_ERROR)
